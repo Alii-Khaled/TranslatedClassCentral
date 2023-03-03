@@ -1,0 +1,8 @@
+-qwr2C2%Pns2u1%s%uN0%I0p3DaK0H0%kf2A250000%f#f -F "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36" -%F "" -%l "en, *" https://www.classcentral.com/ -O1 "C:\Users\aliik\Desktop\pages" +*.css +*.js -ad.doubleclick.net/* -mime:application/foobar +mime:text/html +mime:image/* +*.gif +*.jpg +*.jpeg +*.png +*.tif +*.bmp +*.svg +*.avif
+File generated automatically on Fri, 03 Mar 2023 18:26:39, do NOT edit
+
+To update a mirror, just launch httrack without any parameters
+The existing cache will be used (and modified)
+To have other options, retype all parameters and launch HTTrack
+To continue an interrupted mirror, just launch httrack without any parameters
+
