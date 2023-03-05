@@ -37,8 +37,8 @@ def modify_image_sources(url):
 
 
 if __name__ == "__main__":
-    path = "C:/Users/aliik/Desktop/pages/www.classcentral.com"
-    html_files = get_all_htmls(path)
+    dir_path = "C:/Users/aliik/Desktop/pages/www.classcentral.com"
+    html_files = get_all_htmls(dir_path)
 
     for page in html_files:
         modify_image_sources(page)
