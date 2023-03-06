@@ -1,14 +1,13 @@
 import time
 from urllib.request import Request, urlopen
+
 from bs4 import BeautifulSoup
 from bs4.element import Comment
 from Image2Source import save_html, get_all_htmls
 import translators as ts
 from selenium.webdriver.chrome.service import Service
 from selenium import webdriver
-from ReturnUniqueHTMLs import get_htmls
-
-ALL_TEXT_TAGS = ['p', 'span', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong', 'ul', 'li', 'i', 'a', 'ol']
+import threading
 
 
 def visible_tags(element):
@@ -26,19 +25,49 @@ def is_not_empty(text):
     return False
 
 
+def translate(text):
+    from_lang = 'en'
+    to_lang = 'hi'
+    if is_not_empty(text):
+        translated_text = translate_text_to_hindi(text.getText(), from_lang, to_lang)
+        text.replaceWith(str(translated_text))
+
+
 # It takes almost 3-6 minutes to translate a single .HTML file, which takes many hours but also works well,
-# So I switched to use Google Api for the end2end HTML translation to save much time.
+# So I switched to use Google Api for the end2end HTML translation to save much time, but turned that it destroys
+# the Javascript/Css parts of the pages, so I will use my script on translating some sample pages only for now.
 def translate_html_from_scratch(page):
     soup = BeautifulSoup(page, 'lxml')
     # translated = translate_text_to_hindi(soup.get_text(strip=True), from_lang="en", to_lang="hi")
     texts = soup.findAll(string=True)
-    texts = filter(is_not_empty, texts)
-    from_lang = "en"
-    to_lang = "hi"
+    texts = filter(visible_tags, texts)
 
     for text in texts:
-        translated_text = translate_text_to_hindi(text.getText(), from_lang, to_lang)
-        text.replaceWith(str(translated_text))
+        translate(text)
+
+    return soup
+
+
+# Still Not  Working Properly.
+def translate_html_from_scratch_using_threading(page):
+    soup = BeautifulSoup(page, 'lxml')
+    # translated = translate_text_to_hindi(soup.get_text(strip=True), from_lang="en", to_lang="hi")
+    texts = soup.findAll(string=True)
+    texts = filter(visible_tags, texts)
+    texts_list = list(texts)
+    counter = 0
+    while counter < len(list(texts_list)):
+        c = counter
+        threads_list = []
+        while c < counter + 10 and c < len(texts_list):
+            threads_list.append(threading.Thread(target=translate, args=(texts,)))
+            c += 1
+        for thr in threads_list:
+            thr.start()
+
+        for thr in threads_list:
+            thr.join()
+
     return soup
 
 
@@ -78,23 +107,26 @@ def translate_text_to_hindi(text, from_lang, to_lang):
 
 
 if __name__ == '__main__':
-    index_directory = r"C:/Users/aliik/Desktop/TranslatedClassCentralCopy/www.classcentral.com"
+    index_directory = r"C:/Users/aliik/Desktop/TranslatedClassCentral/www.classcentral.com"
 
     # chrome_driver = setup_browser_driver()
     finished_pages = 0
 
     htmls = get_all_htmls(index_directory)
     htmls.sort(key=len)
+    idx = htmls.index(r"file:///C:/Users/aliik/Desktop/TranslatedClassCentral/www.classcentral.com\subject\ai.html")
+    print(idx)
+    html_url = htmls[idx]
+    # html_url = "link_to_site"
+    #for html_url in htmls:
+    req = Request(html_url)
+    site = urlopen(req)
+    translated_html_page = translate_html_from_scratch(site)
 
-    for html_url in htmls:
-        req = Request(html_url)
-        site = urlopen(req)
-        translated_html_page = translate_html_from_scratch(site)
-
-        # translated_html_page = translate_html_end2end(chrome_driver, html_url)
-        save_html(translated_html_page, html_url)
-        finished_pages += 1
-        print("Finished page num.", finished_pages)
+    # translated_html_page = translate_html_end2end(chrome_driver, html_url)
+    save_html(translated_html_page, html_url)
+    finished_pages += 1
+    print("Finished page num.", finished_pages)
 
     # chrome_driver.close()
     print("Finished All pages !")
